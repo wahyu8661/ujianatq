@@ -83,7 +83,6 @@
 
     .jadwal-img:hover {
       transform: scale(1.02);
-      box-shadow: 0 6px 15px rgba(0,0,0,0.25);
     }
 
     /* POPUP */
@@ -155,11 +154,12 @@
     <div id="popupBox">
       <h3>Masukkan Token</h3>
       <input type="text" id="tokenInput" placeholder="Masukkan token">
-      <button onclick="cekToken()">Submit</button>
+      <button onclick="cekToken()" id="btnSubmit">Submit</button>
     </div>
   </div>
 
 <script>
+
 function openToken() {
   document.getElementById("tokenPopup").style.display = "flex";
 }
@@ -167,74 +167,81 @@ function openToken() {
 function cekToken() {
 
   var inputToken = document.getElementById("tokenInput").value;
-  inputToken = inputToken ? inputToken.toString().trim() : "";
-
-  if (inputToken === "") {
-    alert("Token tidak boleh kosong");
+  if (!inputToken) {
+    alert("Token kosong");
     return;
   }
 
-  var url =
-  "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
+  inputToken = inputToken.toString().trim();
 
-  var btn = document.querySelector("#popupBox button");
+  var btn = document.getElementById("btnSubmit");
   btn.disabled = true;
   btn.innerHTML = "Memeriksa...";
 
-  fetch(url)
-    .then(function(res) {
-      return res.text();
-    })
-    .then(function(text) {
+  var url = "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
 
-      try {
+  var xhr = new XMLHttpRequest();
 
-        var jsonText = text.substring(
-          text.indexOf("{"),
-          text.lastIndexOf("}") + 1
-        );
+  xhr.onreadystatechange = function () {
 
-        var json = JSON.parse(jsonText);
-        var rows = json.table.rows;
+    if (xhr.readyState === 4) {
 
-        var tokenBenar = false;
-
-        for (var i = 0; i < rows.length; i++) {
-
-          if (rows[i].c && rows[i].c[0] && rows[i].c[0].v) {
-
-            var tokenSheet = rows[i].c[0].v.toString().trim();
-
-            if (tokenSheet === inputToken) {
-              tokenBenar = true;
-              break;
-            }
-          }
-        }
-
-        if (tokenBenar) {
-          window.location.href = "mapel.html";
-        } else {
-          alert("Token Salah");
-        }
-
-      } catch (e) {
-        alert("Gagal membaca data token");
-        console.log(e);
-      }
-
-    })
-    .catch(function(err) {
-      alert("Gagal koneksi ke server");
-      console.log(err);
-    })
-    .finally(function() {
       btn.disabled = false;
       btn.innerHTML = "Submit";
-    });
+
+      if (xhr.status === 200) {
+
+        try {
+
+          var text = xhr.responseText;
+
+          var jsonText = text.substring(
+            text.indexOf("{"),
+            text.lastIndexOf("}") + 1
+          );
+
+          var json = JSON.parse(jsonText);
+
+          var rows = json.table.rows;
+
+          var tokenBenar = false;
+
+          for (var i = 0; i < rows.length; i++) {
+
+            if (rows[i].c && rows[i].c[0] && rows[i].c[0].v) {
+
+              var tokenSheet = rows[i].c[0].v.toString().trim();
+
+              if (tokenSheet === inputToken) {
+                tokenBenar = true;
+                break;
+              }
+            }
+          }
+
+          if (tokenBenar) {
+            window.location.href = "mapel.html";
+          } else {
+            alert("Token Salah");
+          }
+
+        } catch (e) {
+          alert("Data token gagal dibaca");
+          console.log(e);
+        }
+
+      } else {
+        alert("Koneksi gagal");
+      }
+    }
+  };
+
+  xhr.open("GET", url, true);
+  xhr.send();
 }
 
 function updateClock() {
+
   var now = new Date();
 
   var options = {
@@ -253,6 +260,7 @@ function updateClock() {
 
 setInterval(updateClock, 1000);
 updateClock();
+
 </script>
 
 </body>
