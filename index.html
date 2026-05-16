@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ujian Sekolah</title>
-
   <style>
     body {
       margin: 0;
@@ -55,6 +54,7 @@
       transform: scale(1.1);
     }
 
+    /* --- STYLE JADWAL --- */
     #judul-jadwal {
       font-size: 22px;
       font-weight: bold;
@@ -73,8 +73,8 @@
     }
 
     .jadwal-img {
-      width: 90%;
-      max-width: 550px;
+      width: 90%;        /* ← LEBAR 90% */
+      max-width: 550px;  /* ← BISA DIATUR SESUAI SELERA */
       border-radius: 12px;
       cursor: pointer;
       transition: 0.3s;
@@ -86,7 +86,7 @@
       box-shadow: 0 6px 15px rgba(0,0,0,0.25);
     }
 
-    /* POPUP */
+    /* Popup Token */
     #tokenPopup {
       position: fixed;
       top: 0;
@@ -132,25 +132,24 @@
     }
   </style>
 </head>
-
 <body>
 
   <img id="logo" src="Asset 1.png">
   <div id="clock"></div>
-
-  <div id="pesan" style="text-align:center;">
-    UJIAN TERM IV SEMESTER GENAP <br>2025/2026
-  </div>
+  <div id="pesan" style="text-align: center;">UJIAN TERM IV SEMESTER GENAP <br>2025/2026</div>
 
   <button class="exam-button" onclick="openToken()">MASUK</button>
 
+  <!-- ======================= -->
+  <!--     JADWAL UJIAN        -->
+  <!-- ======================= -->
   <div id="judul-jadwal">JADWAL UJIAN</div>
 
   <div class="jadwal-list">
+   <!-- <img src="SMP.jpg" class="jadwal-img"> -->
     <img src="smp.jpeg" class="jadwal-img">
   </div>
 
-  <!-- POPUP -->
   <div id="tokenPopup">
     <div id="popupBox">
       <h3>Masukkan Token</h3>
@@ -164,93 +163,41 @@ function openToken() {
   document.getElementById("tokenPopup").style.display = "flex";
 }
 
-function cekToken() {
+async function cekToken() {
 
-  var inputToken = document.getElementById("tokenInput").value;
-  inputToken = inputToken ? inputToken.toString().trim() : "";
+  const inputToken = document.getElementById("tokenInput").value.trim();
 
-  if (inputToken === "") {
-    alert("Token tidak boleh kosong");
-    return;
+  const url = "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
+
+  const res = await fetch(url);
+  const text = await res.text();
+
+  const json = JSON.parse(text.substr(47).slice(0, -2));
+  const rows = json.table.rows;
+
+  let tokenBenar = false;
+
+  rows.forEach(row => {
+    const tokenSheet = row.c[0]?.v?.toString().trim();
+    if (tokenSheet === inputToken) tokenBenar = true;
+  });
+
+  if (tokenBenar) {
+    window.location.href = "mapel.html";
+  } else {
+    alert("Token Salah");
   }
-
-  var url =
-  "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
-
-  var btn = document.querySelector("#popupBox button");
-  btn.disabled = true;
-  btn.innerHTML = "Memeriksa...";
-
-  fetch(url)
-    .then(function(res) {
-      return res.text();
-    })
-    .then(function(text) {
-
-      try {
-
-        var jsonText = text.substring(
-          text.indexOf("{"),
-          text.lastIndexOf("}") + 1
-        );
-
-        var json = JSON.parse(jsonText);
-        var rows = json.table.rows;
-
-        var tokenBenar = false;
-
-        for (var i = 0; i < rows.length; i++) {
-
-          if (rows[i].c && rows[i].c[0] && rows[i].c[0].v) {
-
-            var tokenSheet = rows[i].c[0].v.toString().trim();
-
-            if (tokenSheet === inputToken) {
-              tokenBenar = true;
-              break;
-            }
-          }
-        }
-
-        if (tokenBenar) {
-          window.location.href = "mapel.html";
-        } else {
-          alert("Token Salah");
-        }
-
-      } catch (e) {
-        alert("Gagal membaca data token");
-        console.log(e);
-      }
-
-    })
-    .catch(function(err) {
-      alert("Gagal koneksi ke server");
-      console.log(err);
-    })
-    .finally(function() {
-      btn.disabled = false;
-      btn.innerHTML = "Submit";
-    });
 }
 
 function updateClock() {
-  var now = new Date();
-
-  var options = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
+  const now = new Date();
+  const options = {
+    weekday: 'long', year: 'numeric', month: 'long',
+    day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
   };
-
-  document.getElementById("clock").textContent =
-    now.toLocaleDateString("id-ID", options);
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('id-ID', options);
 }
-
 setInterval(updateClock, 1000);
 updateClock();
 </script>
