@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ujian Sekolah</title>
+
   <style>
+
     body {
       margin: 0;
       padding: 0;
@@ -29,11 +31,13 @@
       font-size: 24px;
       font-weight: bold;
       margin-bottom: 10px;
+      text-align: center;
     }
 
     #clock {
       font-size: 20px;
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .exam-button {
@@ -51,10 +55,12 @@
     .exam-button:hover {
       background: #fdb813;
       color: #002f6c;
-      transform: scale(1.1);
     }
 
-    /* --- STYLE JADWAL --- */
+    /* ========================= */
+    /*       JADWAL UJIAN        */
+    /* ========================= */
+
     #judul-jadwal {
       font-size: 22px;
       font-weight: bold;
@@ -73,20 +79,21 @@
     }
 
     .jadwal-img {
-      width: 90%;        /* ← LEBAR 90% */
-      max-width: 550px;  /* ← BISA DIATUR SESUAI SELERA */
+      width: 90%;
+      max-width: 550px;
       border-radius: 12px;
-      cursor: pointer;
       transition: 0.3s;
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
     .jadwal-img:hover {
-      transform: scale(1.02);
       box-shadow: 0 6px 15px rgba(0,0,0,0.25);
     }
 
-    /* Popup Token */
+    /* ========================= */
+    /*        POPUP TOKEN        */
+    /* ========================= */
+
     #tokenPopup {
       position: fixed;
       top: 0;
@@ -97,7 +104,7 @@
       display: none;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 99999;
     }
 
     #popupBox {
@@ -106,6 +113,7 @@
       border-radius: 12px;
       text-align: center;
       width: 300px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
 
     #popupBox input {
@@ -114,6 +122,7 @@
       margin-top: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
+      font-size: 16px;
     }
 
     #popupBox button {
@@ -124,82 +133,249 @@
       color: white;
       border-radius: 8px;
       cursor: pointer;
+      font-size: 16px;
     }
 
     #popupBox button:hover {
       background: #fdb813;
       color: #002f6c;
     }
+
+    #loadingText {
+      margin-top: 10px;
+      color: #002f6c;
+      font-size: 14px;
+      display: none;
+    }
+
   </style>
 </head>
+
 <body>
 
+  <!-- LOGO -->
   <img id="logo" src="Asset 1.png">
+
+  <!-- JAM -->
   <div id="clock"></div>
-  <div id="pesan" style="text-align: center;">UJIAN TERM IV SEMESTER GENAP <br>2025/2026</div>
 
-  <button class="exam-button" onclick="openToken()">MASUK</button>
+  <!-- JUDUL -->
+  <div id="pesan">
+    UJIAN TERM IV SEMESTER GENAP <br>
+    2025/2026
+  </div>
 
-  <!-- ======================= -->
-  <!--     JADWAL UJIAN        -->
-  <!-- ======================= -->
-  <div id="judul-jadwal">JADWAL UJIAN</div>
+  <!-- TOMBOL MASUK -->
+  <button class="exam-button" onclick="openToken()">
+    MASUK
+  </button>
 
+  <!-- JUDUL JADWAL -->
+  <div id="judul-jadwal">
+    JADWAL UJIAN
+  </div>
+
+  <!-- GAMBAR JADWAL -->
   <div class="jadwal-list">
-   <!-- <img src="SMP.jpg" class="jadwal-img"> -->
     <img src="smp.jpeg" class="jadwal-img">
   </div>
 
+  <!-- POPUP TOKEN -->
   <div id="tokenPopup">
+
     <div id="popupBox">
+
       <h3>Masukkan Token</h3>
-      <input type="text" id="tokenInput" placeholder="Masukkan token">
-      <button onclick="cekToken()">Submit</button>
+
+      <input
+        type="text"
+        id="tokenInput"
+        placeholder="Masukkan token"
+        autocomplete="off"
+      >
+
+      <br>
+
+      <button id="submitBtn" onclick="cekToken()">
+        Submit
+      </button>
+
+      <div id="loadingText">
+        Memeriksa token...
+      </div>
+
     </div>
+
   </div>
 
 <script>
-function openToken() {
-  document.getElementById("tokenPopup").style.display = "flex";
-}
 
-async function cekToken() {
+  // =========================
+  // BUKA POPUP
+  // =========================
 
-  const inputToken = document.getElementById("tokenInput").value.trim();
+  function openToken() {
+    document.getElementById("tokenPopup").style.display = "flex";
 
-  const url = "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
+    setTimeout(function () {
+      document.getElementById("tokenInput").focus();
+    }, 100);
+  }
 
-  const res = await fetch(url);
-  const text = await res.text();
+  // =========================
+  // ENTER KEY
+  // =========================
 
-  const json = JSON.parse(text.substr(47).slice(0, -2));
-  const rows = json.table.rows;
+  document.addEventListener("DOMContentLoaded", function () {
 
-  let tokenBenar = false;
+    document.getElementById("tokenInput").addEventListener("keypress", function(event) {
 
-  rows.forEach(row => {
-    const tokenSheet = row.c[0]?.v?.toString().trim();
-    if (tokenSheet === inputToken) tokenBenar = true;
+      if (event.key === "Enter") {
+        cekToken();
+      }
+
+    });
+
   });
 
-  if (tokenBenar) {
-    window.location.href = "mapel.html";
-  } else {
-    alert("Token Salah");
-  }
-}
+  // =========================
+  // CEK TOKEN
+  // =========================
 
-function updateClock() {
-  const now = new Date();
-  const options = {
-    weekday: 'long', year: 'numeric', month: 'long',
-    day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit'
-  };
-  document.getElementById('clock').textContent =
-    now.toLocaleDateString('id-ID', options);
-}
-setInterval(updateClock, 1000);
-updateClock();
+  async function cekToken() {
+
+    const submitBtn = document.getElementById("submitBtn");
+    const loadingText = document.getElementById("loadingText");
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Loading...";
+    loadingText.style.display = "block";
+
+    try {
+
+      const inputToken = document
+        .getElementById("tokenInput")
+        .value
+        .trim();
+
+      // VALIDASI INPUT KOSONG
+      if (inputToken === "") {
+
+        alert("Token belum diisi");
+
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
+        loadingText.style.display = "none";
+
+        return;
+      }
+
+      // URL GOOGLE SHEET
+      const url =
+        "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
+
+      // FETCH DATA
+      const res = await fetch(url);
+
+      // VALIDASI RESPONSE
+      if (!res.ok) {
+
+        alert("Gagal mengambil data token");
+
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Submit";
+        loadingText.style.display = "none";
+
+        return;
+      }
+
+      const text = await res.text();
+
+      // PARSE JSON GOOGLE SHEET
+      const json = JSON.parse(text.substr(47).slice(0, -2));
+
+      const rows = json.table.rows;
+
+      let tokenBenar = false;
+
+      // LOOP TOKEN
+      for (let i = 0; i < rows.length; i++) {
+
+        let tokenSheet = "";
+
+        if (
+          rows[i].c[0] &&
+          rows[i].c[0].v
+        ) {
+
+          tokenSheet = rows[i].c[0].v
+            .toString()
+            .trim();
+
+        }
+
+        if (tokenSheet === inputToken) {
+
+          tokenBenar = true;
+          break;
+
+        }
+
+      }
+
+      // HASIL TOKEN
+      if (tokenBenar) {
+
+        window.location.href = "mapel.html";
+
+      } else {
+
+        alert("Token Salah");
+
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert("Koneksi gagal atau browser tidak mendukung.");
+
+    }
+
+    // RESET BUTTON
+    submitBtn.disabled = false;
+    submitBtn.innerText = "Submit";
+    loadingText.style.display = "none";
+
+  }
+
+  // =========================
+  // JAM REALTIME
+  // =========================
+
+  function updateClock() {
+
+    const now = new Date();
+
+    const options = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    };
+
+    document.getElementById('clock').textContent =
+      now.toLocaleDateString('id-ID', options);
+
+  }
+
+  setInterval(updateClock, 1000);
+
+  updateClock();
+
 </script>
 
 </body>
