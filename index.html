@@ -101,144 +101,154 @@ h1{
 
 <script>
 
-async function loadMapel() {
+function loadMapel() {
 
     var loading = document.getElementById("loading");
     var container = document.getElementById("mapelContainer");
     var errorBox = document.getElementById("errorBox");
 
-    try {
+    var url =
+    "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
 
-        /*
-        ===================================================
-        FORMAT GOOGLE SHEET
-        ===================================================
+    var xhr = new XMLHttpRequest();
 
-        KOLOM A = Nama Mapel
-        KOLOM B = Link Ujian
+    xhr.onreadystatechange = function () {
 
-        Contoh:
+        if (xhr.readyState == 4) {
 
-        Matematika | https://linkujian.com
-        IPA         | https://linkujian.com
-        Bahasa      | https://linkujian.com
+            loading.style.display = "none";
 
-        ===================================================
-        */
+            // BERHASIL
+            if (xhr.status == 200) {
 
-        var url =
-        "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
+                try {
 
-        var response = await fetch(url);
+                    var text = xhr.responseText;
 
-        if (!response.ok) {
+                    // PARSE JSON GOOGLE
+                    var json = JSON.parse(
+                        text.substring(47).slice(0, -2)
+                    );
 
-            throw new Error("Gagal mengambil data spreadsheet");
+                    var rows = json.table.rows;
 
-        }
+                    // JIKA TIDAK ADA DATA
+                    if (!rows || rows.length === 0) {
 
-        var text = await response.text();
+                        errorBox.style.display = "block";
+                        errorBox.innerHTML = "Data mapel kosong.";
 
-        var json = JSON.parse(text.substr(47).slice(0, -2));
+                        return;
 
-        var rows = json.table.rows;
+                    }
 
-        loading.style.display = "none";
+                    // LOOP DATA
+                    for (var i = 0; i < rows.length; i++) {
 
-        if (!rows || rows.length === 0) {
+                        var namaMapel = "";
+                        var linkUjian = "";
 
-            errorBox.style.display = "block";
-            errorBox.innerHTML = "Data mapel kosong.";
+                        // KOLOM A
+                        if (
+                            rows[i].c[0] != null &&
+                            rows[i].c[0].v != null
+                        ) {
 
-            return;
+                            namaMapel =
+                            rows[i].c[0].v.toString();
 
-        }
+                        }
 
-        for (var i = 0; i < rows.length; i++) {
+                        // KOLOM B
+                        if (
+                            rows[i].c[1] != null &&
+                            rows[i].c[1].v != null
+                        ) {
 
-            var namaMapel = "";
-            var linkUjian = "";
+                            linkUjian =
+                            rows[i].c[1].v.toString();
 
-            // Kolom A
-            if (
-                rows[i].c[0] &&
-                rows[i].c[0].v
-            ) {
+                        }
 
-                namaMapel = rows[i].c[0].v.toString();
+                        // SKIP JIKA KOSONG
+                        if (
+                            namaMapel == "" ||
+                            linkUjian == ""
+                        ) {
+
+                            continue;
+
+                        }
+
+                        // CARD
+                        var card =
+                        document.createElement("div");
+
+                        card.className = "mapel-card";
+
+                        // TITLE
+                        var title =
+                        document.createElement("div");
+
+                        title.className = "mapel-title";
+                        title.innerHTML = namaMapel;
+
+                        // BUTTON
+                        var button =
+                        document.createElement("a");
+
+                        button.className = "mapel-button";
+                        button.innerHTML = "Masuk Ujian";
+                        button.href = linkUjian;
+                        button.target = "_self";
+
+                        // GABUNG
+                        card.appendChild(title);
+                        card.appendChild(button);
+
+                        container.appendChild(card);
+
+                    }
+
+                    // JIKA TIDAK ADA YANG VALID
+                    if (container.innerHTML == "") {
+
+                        errorBox.style.display = "block";
+
+                        errorBox.innerHTML =
+                        "Tidak ada data mapel valid.";
+
+                    }
+
+                } catch(e) {
+
+                    console.log(e);
+
+                    errorBox.style.display = "block";
+
+                    errorBox.innerHTML =
+                    "Format spreadsheet tidak sesuai.";
+
+                }
 
             }
 
-            // Kolom B
-            if (
-                rows[i].c[1] &&
-                rows[i].c[1].v
-            ) {
+            // GAGAL
+            else {
 
-                linkUjian = rows[i].c[1].v.toString();
+                errorBox.style.display = "block";
 
-            }
-
-            // Skip jika kosong
-            if (
-                namaMapel === "" ||
-                linkUjian === ""
-            ) {
-
-                continue;
+                errorBox.innerHTML =
+                "Gagal mengambil data spreadsheet.";
 
             }
 
-            // Buat Card
-            var card = document.createElement("div");
-            card.className = "mapel-card";
-
-            // Judul
-            var title = document.createElement("div");
-            title.className = "mapel-title";
-            title.innerHTML = namaMapel;
-
-            // Tombol
-            var button = document.createElement("a");
-            button.className = "mapel-button";
-            button.innerHTML = "Masuk Ujian";
-            button.href = linkUjian;
-
-            // PENTING UNTUK EXAMBROWSER
-            button.target = "_self";
-
-            // Gabung
-            card.appendChild(title);
-            card.appendChild(button);
-
-            container.appendChild(card);
-
         }
 
-        // Jika tidak ada mapel valid
-        if (container.innerHTML === "") {
+    };
 
-            errorBox.style.display = "block";
-            errorBox.innerHTML = "Tidak ada data mapel yang valid.";
-
-        }
-
-    } catch(error) {
-
-        console.log(error);
-
-        loading.style.display = "none";
-
-        errorBox.style.display = "block";
-
-        errorBox.innerHTML =
-        "Gagal memuat data ujian.<br><br>" +
-        "Kemungkinan:<br>" +
-        "- Internet bermasalah<br>" +
-        "- Spreadsheet tidak public<br>" +
-        "- Browser Exam tidak support fitur tertentu";
-
-    }
+    xhr.open("GET", url, true);
+    xhr.send();
 
 }
 
