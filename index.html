@@ -54,7 +54,6 @@
       transform: scale(1.1);
     }
 
-    /* --- STYLE JADWAL --- */
     #judul-jadwal {
       font-size: 22px;
       font-weight: bold;
@@ -73,8 +72,8 @@
     }
 
     .jadwal-img {
-      width: 90%;        /* ← LEBAR 90% */
-      max-width: 550px;  /* ← BISA DIATUR SESUAI SELERA */
+      width: 90%;
+      max-width: 550px;
       border-radius: 12px;
       cursor: pointer;
       transition: 0.3s;
@@ -140,13 +139,8 @@
 
   <button class="exam-button" onclick="openToken()">MASUK</button>
 
-  <!-- ======================= -->
-  <!--     JADWAL UJIAN        -->
-  <!-- ======================= -->
   <div id="judul-jadwal">JADWAL UJIAN</div>
-
   <div class="jadwal-list">
-   <!-- <img src="SMP.jpg" class="jadwal-img"> -->
     <img src="smp.jpeg" class="jadwal-img">
   </div>
 
@@ -164,28 +158,31 @@ function openToken() {
 }
 
 async function cekToken() {
-
   const inputToken = document.getElementById("tokenInput").value.trim();
-
   const url = "https://docs.google.com/spreadsheets/d/1ZbAWU8G2ZM1hUeA7cMVCP3cl6O-E1jMTd3dIMXI4VTI/gviz/tq?tqx=out:json";
 
-  const res = await fetch(url);
-  const text = await res.text();
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Gagal mengambil data dari server");
+    const text = await res.text();
 
-  const json = JSON.parse(text.substr(47).slice(0, -2));
-  const rows = json.table.rows;
+    const json = JSON.parse(text.substr(47).slice(0, -2));
+    const rows = json.table.rows;
 
-  let tokenBenar = false;
+    let tokenBenar = false;
+    rows.forEach(row => {
+      const tokenSheet = row.c[0]?.v?.toString().trim();
+      if (tokenSheet === inputToken) tokenBenar = true;
+    });
 
-  rows.forEach(row => {
-    const tokenSheet = row.c[0]?.v?.toString().trim();
-    if (tokenSheet === inputToken) tokenBenar = true;
-  });
-
-  if (tokenBenar) {
-    window.location.href = "mapel.html";
-  } else {
-    alert("Token Salah");
+    if (tokenBenar) {
+      window.location.href = "mapel.html";
+    } else {
+      alert("Token Salah");
+    }
+  } catch (err) {
+    alert("Terjadi error: " + err.message);
+    console.error("Detail error:", err);
   }
 }
 
